@@ -80,6 +80,11 @@ You are able to turn disable ssl redirects by adding the following environment c
 
     SslRequirement.disable_ssl_check = true
 
+You are able to the change the status code (defaults to 302) of the redirect by
+addng the following to the environment configuration file:
+
+  SslRequirement.redirect_status = :moved_permanently
+
 P.S.: Beware when you include the SslRequirement module. At the time of
 inclusion, it'll add the before_filter that validates the declarations. Some
 times you'll want to run other before_filters before that. They should then be
