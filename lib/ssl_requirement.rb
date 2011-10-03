@@ -29,7 +29,7 @@ module SslRequirement
   end
 
   def self.ssl_port
-    @@ssl_port ||= 433
+    @@ssl_port ||= 443
   end
 
   def self.non_ssl_host
@@ -127,7 +127,7 @@ module SslRequirement
     request_port = request.port
 
     if ssl
-      "#{(ssl_host || request_host)}#{ssl_port || determine_port_string(request_port)}"
+      "#{(ssl_host || request_host)}#{determine_port_string(ssl_port || request_port)}"
     else
       "#{(non_ssl_host || request_host)}#{determine_port_string(request_port)}"
     end
