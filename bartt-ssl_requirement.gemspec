@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.version = "1.3.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = [%q{RailsJedi}, %q{David Heinemeier Hansson}, %q{jcnetdev}, %q{bcurren}, %q{bmpercy}, %q{revo}, %q{nathany}, %q{bartt}, %q{Thorben Schröder}]
+  s.authors = [%q{RailsJedi}, %q{David Heinemeier Hansson}, %q{jcnetdev}, %q{bcurren}, %q{bmpercy}, %q{revo}, %q{nathany}, %q{bartt}, %q{Thorben Schroder}]
   s.date = %q{2011-10-25}
   s.description = %q{SSL requirement adds a declarative way of specifying that certain actions should only be allowed to run under SSL, and if they're accessed without it, they should be redirected.}
   s.email = %q{bart@thecodemill.biz}
