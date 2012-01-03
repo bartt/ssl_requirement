@@ -22,6 +22,8 @@ require "active_support/core_ext/class"
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 module SslRequirement
+  extend ActiveSupport::Concern
+
   mattr_writer :ssl_host, :ssl_port, :non_ssl_host, :disable_ssl_check
   mattr_accessor :redirect_status
 
@@ -55,34 +57,39 @@ module SslRequirement
   end
 
 
-  # called when Module is mixed in
-  def self.included(controller)
-    controller.extend(ClassMethods)
-    controller.before_filter(:ensure_proper_protocol)
+  included do
+    class_attribute :ssl_required_actions
+    class_attribute :ssl_required_except_actions
+    class_attribute :ssl_allowed_actions
+
+    before_filter :ensure_proper_protocol
   end
 
   module ClassMethods
     # Specifies that the named actions requires an SSL connection to be performed (which is enforced by ensure_proper_protocol).
     def ssl_required(*actions)
-      write_inheritable_array(:ssl_required_actions, actions)
+      self.ssl_required_actions ||= []
+      self.ssl_required_actions += actions
     end
 
     def ssl_exceptions(*actions)
-      write_inheritable_array(:ssl_required_except_actions, actions)
+      self.ssl_required_except_actions ||= []
+      self.ssl_required_except_actions += actions
     end
 
     # To allow SSL for any action pass :all as action like this:
     # ssl_allowed :all
     def ssl_allowed(*actions)
-      write_inheritable_array(:ssl_allowed_actions, actions)
+      self.ssl_allowed_actions ||= []
+      self.ssl_allowed_actions += actions
     end
   end
 
   protected
   # Returns true if the current action is supposed to run as SSL
   def ssl_required?
-    required = (self.class.read_inheritable_attribute(:ssl_required_actions) || [])
-    except  = self.class.read_inheritable_attribute(:ssl_required_except_actions)
+    required = self.class.ssl_required_actions || []
+    except  = self.class.ssl_required_except_actions
 
     unless except
       required.include?(action_name.to_sym)
@@ -92,7 +99,7 @@ module SslRequirement
   end
 
   def ssl_allowed?
-    allowed_actions = (self.class.read_inheritable_attribute(:ssl_allowed_actions) || [])
+    allowed_actions = self.class.ssl_allowed_actions || []
 
     allowed_actions == [:all] || allowed_actions.include?(action_name.to_sym)
   end
