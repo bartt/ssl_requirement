@@ -159,11 +159,51 @@ class SslRequirementTest < ActionController::TestCase
     assert_match %r{^https://.*:4567/}, @response.headers['Location']
   end
 
+  def test_redirect_to_https_ignores_known_non_ssl_port
+    SslRequirement.non_ssl_port = 4567
+
+    assert_not_equal "on", @request.env["HTTPS"]
+    @request.host = 'www.example.com:4567'
+    @request.port = 4567
+
+    get :b
+    assert_response :redirect
+    assert_match %r{^https://.+\.com/}, @response.headers['Location']
+
+    SslRequirement.non_ssl_port = 80
+  end
+
   def test_redirect_to_https_does_not_preserve_normal_port
     assert_not_equal "on", @request.env["HTTPS"]
     get :b
     assert_response :redirect
     assert_match %r{^https://.*[^:]/}, @response.headers['Location']
+  end
+
+  def redirect_to_http_preserves_non_normal_port
+    @request.env['HTTPS'] = "on"
+    @request.host = 'www.example.com:4567'
+    @request.port = 4567
+
+    get :d
+
+    assert_response :redirect
+    assert_match %r{^http://.*:4567/}, @response.headers['Location']
+  end
+
+  def test_redirect_to_http_ignores_known_ssl_port
+    SslRequirement.ssl_port = 6789
+
+    @request.env['HTTPS'] = "on"
+    @request.host = 'www.example.com:6789'
+    @request.port = 6789
+
+    get :d
+
+    assert_response :redirect
+    assert_match %r{^http://.*\.com/}, @response.headers['Location']
+
+    SslRequirement.ssl_port = 443
   end
 
   # flash-related tests
