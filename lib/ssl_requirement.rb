@@ -169,7 +169,7 @@ module SslRequirement
   end
 
   def self.determine_host(host)
-    if host.is_a?(Proc) || host.respond_to?(:call)
+    if host.respond_to?(:call)
       host.call
     else
       host
