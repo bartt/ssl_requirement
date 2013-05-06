@@ -1,6 +1,8 @@
 require "#{File.dirname(__FILE__)}/url_for"
 require "active_support/core_ext/class"
 
+require "uri"
+
 # Copyright (c) 2005 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -113,10 +115,6 @@ module SslRequirement
     allowed_actions == [:all] || allowed_actions.include?(action_name.to_sym)
   end
 
-  # normal ports are the ports used when no port is specified by the user to the browser
-  # i.e. 80 if the protocol is http, 443 is the protocol is https
-  NORMAL_PORTS = [80, 443]
-
   private
   def ensure_proper_protocol
     return true if SslRequirement.disable_ssl_check?
@@ -135,56 +133,46 @@ module SslRequirement
   end
 
   def determine_redirect_url(request, ssl)
-    protocol = ssl ? "https" : "http"
-    "#{protocol}://#{determine_host_and_port(request, ssl)}#{request.fullpath}"
+    uri        = determine_base_uri(request.port, ssl)
+    uri.host ||= request.host
+    uri.path   = request.fullpath
+    uri.normalize!
+    uri.to_s
   end
 
-  def determine_host_and_port(request, ssl)
-    request_host = request.host
-    request_port = request.port
-
+  def determine_base_uri(request_port, ssl)
     if ssl
-      "#{ssl_host || request_host}#{determine_ssl_port_string request.port}"
+      host, port = ssl_host.to_s.split(":", 2)
+      port ||= determine_ssl_port_string(request_port)
+      URI::HTTPS.build(:host => host, :port => port.to_i)
     else
-      "#{non_ssl_host || request_host}#{determine_non_ssl_port_string request.port}"
+      host, port = non_ssl_host.to_s.split(":", 2)
+      port ||= determine_non_ssl_port_string(request_port)
+      URI::HTTP.build(:host => host, :port => port.to_i)
     end
   end
 
   def determine_ssl_port_string(request_port)
     if request_port == non_ssl_port
-      port = ssl_port
+      ssl_port
     else
-      port = request_port || ssl_port
+      request_port || ssl_port
     end
-    determine_port_string port
   end
 
   def determine_non_ssl_port_string(request_port)
     if request_port == ssl_port
-      port = non_ssl_port
+      non_ssl_port
     else
-      port = request_port || non_ssl_port
+      request_port || non_ssl_port
     end
-    determine_port_string port
   end
 
   def self.determine_host(host)
-    if host.is_a?(Proc) || host.respond_to?(:call)
+    if host.respond_to?(:call)
       host.call
     else
       host
     end
-  end
-
-  def determine_port_string(port)
-    unless port_normal?(port)
-      ":#{port}"
-    else
-      ""
-    end
-  end
-
-  def port_normal?(port)
-    NORMAL_PORTS.include?(port)
   end
 end
