@@ -28,8 +28,11 @@ module SslRequirement
     :disable_ssl_check
   mattr_accessor :redirect_status
 
+  self.ssl_host = nil
+  self.non_ssl_host = nil
+
   def self.ssl_host
-    determine_host(@@ssl_host) rescue nil
+    determine_host(@@ssl_host)
   end
 
   def self.ssl_port
@@ -37,7 +40,7 @@ module SslRequirement
   end
 
   def self.non_ssl_host
-    determine_host(@@non_ssl_host) rescue nil
+    determine_host(@@non_ssl_host)
   end
 
   def self.non_ssl_port
