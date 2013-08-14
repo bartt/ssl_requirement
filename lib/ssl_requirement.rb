@@ -90,7 +90,7 @@ module SslRequirement
     # ssl_allowed :all
     def ssl_allowed(*actions)
       self.ssl_allowed_actions ||= []
-      self.ssl_allowed_actions += actions
+      self.ssl_allowed_actions != [:all] && self.ssl_allowed_actions += actions
     end
   end
 
