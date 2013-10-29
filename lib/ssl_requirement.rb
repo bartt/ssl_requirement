@@ -100,10 +100,10 @@ module SslRequirement
     required = self.class.ssl_required_actions || []
     except  = self.class.ssl_required_except_actions
 
-    unless except
-      required.include?(action_name.to_sym)
-    else
+    if except
       !except.include?(action_name.to_sym)
+    else
+      required.include?(action_name.to_sym)
     end
   end
 
@@ -177,11 +177,7 @@ module SslRequirement
   end
 
   def determine_port_string(port)
-    unless port_normal?(port)
-      ":#{port}"
-    else
-      ""
-    end
+    port_normal?(port) ? '' : ":#{port}"
   end
 
   def port_normal?(port)
