@@ -101,7 +101,7 @@ module SslRequirement
     except  = self.class.ssl_required_except_actions
 
     unless except
-      required.include?(action_name.to_sym)
+      required == [:all] || required.include?(action_name.to_sym)
     else
       !except.include?(action_name.to_sym)
     end

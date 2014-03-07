@@ -120,6 +120,29 @@ class SslAllowAllAndRequireController < SslAllowAllActionsController
   ssl_required :a, :b
 end
 
+class SslRequireAllActionsController < ActionController::Base
+  include SslRequirement
+  include ROUTES.url_helpers
+
+  ssl_required :all
+
+  def a
+    render :nothing => true
+  end
+
+  def b
+    render :nothing => true
+  end
+
+  def self._routes
+    ROUTES
+  end
+end
+
+class SslRequireAllActionsWithExceptionController < SslRequireAllActionsController
+  ssl_exceptions :b
+end
+
 # NOTE: The only way I could get the flash tests to work under Rails 2.3.2
 #       (without resorting to IntegrationTest with some artificial session
 #       store) was to use TestCase. In TestCases, it appears that flash
@@ -438,4 +461,44 @@ class SslRequirementTest < ActionController::TestCase
     assert_match %r{^https://}, @response.headers['Location']
   end
 
+  # test requiring ssl on any action by the :all symbol
+  def test_require_all
+    @controller = SslRequireAllActionsController.new
+
+    assert_not_equal "on", @request.env["HTTPS"]
+
+    get :a
+    assert_response :redirect
+
+    get :b
+    assert_response :redirect
+
+    @request.env["HTTPS"] = "on"
+
+    get :a
+    assert_response :success
+
+    get :b
+    assert_response :success
+  end
+
+  def test_require_all_with_exceptions
+    @controller = SslRequireAllActionsWithExceptionController.new
+
+    assert_not_equal "on", @request.env["HTTPS"]
+
+    get :a
+    assert_response :redirect
+
+    get :b
+    assert_response :success
+
+    @request.env["HTTPS"] = "on"
+
+    get :a
+    assert_response :success
+
+    get :b
+    assert_response :redirect
+  end
 end
