@@ -46,11 +46,11 @@ If a majority (or all) of your actions require SSL, then use `ssl_exceptions` in
 You can list out the actions that you do NOT want to be SSL protected. Calling `ssl_exceptions` without
 any actions listed will make ALL actions SSL protected.
 
-To allow SSL for any action `use ssl_allowed` and pass in `:all`
+To allow or require SSL for all actions, pass `:all` to their respective methods.
 
 Example:
 
-   # This will enable SSL for any action in your application.
+   # This will enable SSL for all actions in your application.
    class ApplicationController < ActionController::Base
       include ::SslRequirement
 
